@@ -1,0 +1,19 @@
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# Java/Eclipse build output
+*.class
+*.log
+hs_err_pid*.log
+replay_pid*.log
+JSDroid/bin/
+JSDroid/JimpleOutput/
+
+# Generated analysis outputs
+Results.xls
+JSDroid/Results.xls
+
+# Local agent/debug artifacts
+.cursor/
