@@ -18,9 +18,9 @@ public class result2excel {
     
 	public void initExcel(String ExcelFileLocation){
 	   try {
-		    book= Workbook.createWorkbook(new File(ExcelFileLocation));//打开文件 ,若文件不存在则会创建
-		    sheet=book.createSheet(SheetName,0); //生成工作表
-	        Label HeadAppName=new Label(0,0,"App name"); //表头设置
+		    book= Workbook.createWorkbook(new File(ExcelFileLocation));//????? ,????????????????
+		    sheet=book.createSheet(SheetName,0); //?????????
+	        Label HeadAppName=new Label(0,0,"App name"); //???????
 	        sheet.addCell(HeadAppName); 
 	        Label HeadEnableJS= new Label(1,0,"Use JS"); 
 	        sheet.addCell(HeadEnableJS); 
@@ -73,11 +73,11 @@ public class result2excel {
 		       e.printStackTrace();
 	       }    
 	}
-	public void addOneLine2Excel(String appName,AndroidAnalysis myInstrumentor,ProcessManifest processMan,int i){//把对App分析的结果输出到excel表格的第i行
+	public void addOneLine2Excel(String appName,AndroidAnalysis myInstrumentor,ProcessManifest processMan,int i){//???App?????????????excel??????i??
 		
 		System.out.println("-----------------add one record into the excel--------------------------------");
 		try{
-            Label LineAppName=new Label(0,i,appName);//根据分析结果为表中添加一列元素
+            Label LineAppName=new Label(0,i,appName);//?????????????????????????
             sheet.addCell(LineAppName);
     	    Label LineEnableJs;
             if(myInstrumentor.flagEnableJS==true)
@@ -257,7 +257,7 @@ public class result2excel {
 	public void WriteAll(){
 		try {
     		book.write();
-			book.close();//关闭表格
+			book.close();//??????
 			
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -329,7 +329,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 		   }else{
 			   System.out.println("WebViewClass");
 		   }
-		   if(SearchWebViewClientOfoneWV(sc,sm,VbWebview)==true)//如果此WebView具有导航当前页面到其他页面的能力，则认为存在第二种风险 
+		   if(SearchWebViewClientOfoneWV(sc,sm,VbWebview)==true)//?????WebView????????????????????????????????????????????? 
 		   {
 			   System.out.println("Has a WebViewCLient");
 		   } 
@@ -511,7 +511,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 						System.out.println(leftValue.toString()+":setWebViewClient");
 						Value rightValue=GetRightOP(unit);
 						String WVCString;
-						if (rightValue.toString().startsWith("$")) {// 还存在赋值
+						if (rightValue.toString().startsWith("$")) {// ????????
 							System.out.println("WebViewClient:"+rightValue.toString());
 							WVCString=FindValueString(sc,sm,body,unit,rightValue);
 //							wVCString = SearchStringInOneBody(body, GetRightOP(unit),0);
@@ -528,7 +528,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 							System.out.println("WebViewClient class name:"+ClassName);
 							SMcheckWebViewClientNavigation(ClassName);
 						}else{
-							System.out.println("查找失败--------");
+							System.out.println("???????--------");
 						}
 						break;
 					}
@@ -538,7 +538,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 		return flagWebViewClientInCurrentMethod;
 	}
 	
-	public boolean SearchWebViewClientInCurrentClass(SootClass sc) {// 在当前类中查找WebViewClient的定义
+	public boolean SearchWebViewClientInCurrentClass(SootClass sc) {// ????????????WebViewClient?????
 
 		System.out.println("------------Search WebViewClient In Current Class---------------");
 		boolean flagWebViewClientInCurrentClass = false;
@@ -553,9 +553,9 @@ public class AndroidAnalysis extends BasicAnalysis{
 							if(methodName.equals("setWebViewClient")){
 //								flagWebViewClientInCurrentClass = true;
 								System.out.println("setWebViewClient");
-								Value rightValue=GetRightOP(unit);// 取WebViewClient类的
+								Value rightValue=GetRightOP(unit);// ?WebViewClient???
 								String WVCString;
-								if (rightValue.toString().startsWith("$")) {// 还存在赋值
+								if (rightValue.toString().startsWith("$")) {// ????????
 									System.out.println("WebViewClient:"+rightValue.toString());
 									WVCString=FindValueString(sc,sm,body,unit,rightValue);
 //									wVCString = SearchStringInOneBody(body, GetRightOP(unit),0);
@@ -592,19 +592,19 @@ public class AndroidAnalysis extends BasicAnalysis{
 		for (Unit unit : body.getUnits()) { 
 			if(unit instanceof IdentityStmt){
 				if (GetLeftOP(unit).equals(VbWebview)) {
-					String ValueName = GetRightOP(unit).toString();// 根据赋值语句的右值，得到WebView类名
+					String ValueName = GetRightOP(unit).toString();// ??????????????????WebView????
 					int index = ValueName.indexOf(" ");
 					String WVClassName = ValueName.substring(index + 1);
 					flagWVCAsParameter = SMSearchWebViewClientInWebViewCLass(WVClassName);
 					break;
 				}
 			} 
-			else if(unit instanceof AssignStmt){// 作为赋值语句的参数
+			else if(unit instanceof AssignStmt){// ?????????????
 				if (GetLeftOP(unit).equals(VbWebview)) {
 					
-					Value rightValue=GetRightOP(unit);// 取WebViewClient类的
+					Value rightValue=GetRightOP(unit);// ?WebViewClient???
 					String WVCString;
-					if (rightValue.toString().startsWith("$")) {// 还存在赋值
+					if (rightValue.toString().startsWith("$")) {// ????????
 						System.out.println(rightValue.toString());
 						WVCString=FindValueString(sc,sm,body,unit,rightValue);
 //						wVCString = SearchStringInOneBody(body, GetRightOP(unit),0);
@@ -623,7 +623,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 				break;
 				}
 			} 
-			else if(unit instanceof InvokeStmt){// 作为调用语句的参数
+			else if(unit instanceof InvokeStmt){// ??????????????
 				System.out.println(unit.toString());
 				if (GetLeftOP(unit)!=null&&GetLeftOP(unit).equals(VbWebview)) {
 				}
@@ -632,13 +632,13 @@ public class AndroidAnalysis extends BasicAnalysis{
 		return flagWVCAsParameter;
 	}
 
-	public boolean SMSearchWebViewClientInWebViewCLass(String WebViewClassName) {// 在WebView类里查找其WebViewClient的取值
+	public boolean SMSearchWebViewClientInWebViewCLass(String WebViewClassName) {// ??WebView?????????WebViewClient????
 
 		System.out.println("------------Search WebViewClient In WebView Class---------------");
 		boolean flagWebViewClientInWebViewClass = false;
 		for (SootClass sc : classesChain) {
-			if (sc.getName().toString().equals(WebViewClassName)) {// 根据WebViewClient类名进入类的内部
-				for (SootMethod sm : sc.getMethods()) {// 查看类里面的方法
+			if (sc.getName().toString().equals(WebViewClassName)) {// ????WebViewClient??????????????
+				for (SootMethod sm : sc.getMethods()) {// ????????????
 					if (sm.isConcrete()) {
 						Body body = sm.retrieveActiveBody();
 						for (Unit unit : body.getUnits()) {
@@ -647,9 +647,9 @@ public class AndroidAnalysis extends BasicAnalysis{
 								String methodName=curStmt.getInvokeExpr().getMethod().getName();//Get method name
 								if(methodName.equals("setWebViewClient")){
 									flagWebViewClientInWebViewClass= true;
-									Value rightValue=GetRightOP(unit);// 取WebViewClient类的
+									Value rightValue=GetRightOP(unit);// ?WebViewClient???
 									String WVCString;
-									if (rightValue.toString().startsWith("$")) {// 还存在赋值
+									if (rightValue.toString().startsWith("$")) {// ????????
 										System.out.println(rightValue.toString());
 										WVCString=FindValueString(sc,sm,body,unit,rightValue);
 //										wVCString = SearchStringInOneBody(body, GetRightOP(unit),0);
@@ -677,14 +677,14 @@ public class AndroidAnalysis extends BasicAnalysis{
 			}
 		}
 //		if (flagWebViewClientInWebViewClass == true) {
-//			System.out.println("在原始的WebView类中找到WebViewCient");
+//			System.out.println("??????WebView???????WebViewCient");
 //		} else {
-//			System.out.println("在原始的WebView类中没有找到WebViewCient");
+//			System.out.println("??????WebView??????????WebViewCient");
 //		}
 		return flagWebViewClientInWebViewClass;
 	}
 
-	public boolean SMSearchWebviewclientClass(SootMethod sm, Value ValueName) {// 根据表示WebViewClient类的变量，找出其赋值语句
+	public boolean SMSearchWebviewclientClass(SootMethod sm, Value ValueName) {// ??????WebViewClient?????????????P????
 
 		System.out.println("------------Search WebViewClient Class---------------");
 		boolean flagWVCnavigation = false;
@@ -693,7 +693,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 			for (Unit unit : body.getUnits()) {
 				if(unit instanceof AssignStmt)
 				{
-					if (GetLeftOP(unit).equals(ValueName)) {// 如果赋值语句是给WebviewClient变量赋值，即找到
+					if (GetLeftOP(unit).equals(ValueName)) {// ????????????WebviewClient??????????????
 						String ClassDefine = GetRightOP(unit).toString();
 						int index = ClassDefine.indexOf(" ", 0);
 						String ClassName = ClassDefine.substring(index + 1);
@@ -705,37 +705,37 @@ public class AndroidAnalysis extends BasicAnalysis{
 		return flagWVCnavigation;
 	}
 
-	public void SMcheckWebViewClientNavigation(String ClassName) { // 根据找到的WebviewClient类名，进入到class中,判断该Class类里的方法shouldOverrideURLLoading方法是否支持在WebView内部进行网页的跳转
-		boolean flagoverrideMethod=false; //没有重载shouldovverrideUrlLoading方法
+	public void SMcheckWebViewClientNavigation(String ClassName) { // ?????????WebviewClient??????????class??,?????Class????????shouldOverrideURLLoading????????????WebView???????????????
+		boolean flagoverrideMethod=false; //???????shouldovverrideUrlLoading????
 		if(ClassName.equals("android.webkit.WebViewClient")){
 			flagWebViewNavigation=true;
 			System.out.println("Default WebViewClient!");
 			return;
 		}
 		for (SootClass sc : classesChain) {
-			if (sc.getName().equals(ClassName)) {// 根据WebViewClient类名进入类的内部
-				for (SootMethod sm : sc.getMethods()) {// 查看类里面的方法，找到overideUrlLoading方法
+			if (sc.getName().equals(ClassName)) {// ????WebViewClient??????????????
+				for (SootMethod sm : sc.getMethods()) {// ?????????????????overideUrlLoading????
 					if ((sm.isConcrete()) && (sm.getName().equals("shouldOverrideUrlLoading"))) {
 						flagoverrideMethod=true;
-						System.out.println("找到shouldOverrideUrlLoading方法");
+						System.out.println("???shouldOverrideUrlLoading????");
 						Body b = sm.retrieveActiveBody();
 						for (Unit unit : b.getUnits()) {
-							if(unit instanceof ReturnStmt){// 找return语句
+							if(unit instanceof ReturnStmt){// ??return???
 								if (GetReturnValue(unit).equals(IntConstant.v(0))) {
 									System.out.println("return false");
 									flagWebViewNavigation = true;
 								}
-								if (GetReturnValue(unit).toString().contains("$")) {// 在此方法中查找$的定义
+								if (GetReturnValue(unit).toString().contains("$")) {// ????????????$?????
 									for (Unit ut2 : b.getUnits()) {
-										if(ut2 instanceof AssignStmt){// 找赋值语句
+										if(ut2 instanceof AssignStmt){// ???????
 										{
 											if (ut2.toString().contains("shouldOverrideUrlLoading")) {// return
-												System.out.println("super.shouldOverrideUrlLoading()语句");
+												System.out.println("super.shouldOverrideUrlLoading()???");
 												flagWebViewNavigation= true;
 											} else {
 												if (GetLeftOP(ut2).equals(GetReturnValue(unit))) {
-													if (GetRightOP(ut2).equals(IntConstant.v(0))) {// 有可能在WebView中跳转
-														System.out.println("有可能在WebView中跳转");
+													if (GetRightOP(ut2).equals(IntConstant.v(0))) {// ????????WebView?????
+														System.out.println("????????WebView?????");
 														flagWebViewNavigation = true;
 													}
 												}
@@ -747,7 +747,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 						}
 					    if(unit instanceof InvokeStmt){
 					    	 if(unit.toString().contains("loadUrl(")||unit.toString().contains("loadData(")||unit.toString().contains("loadDataWithBaseURL(")){
-					    		 System.out.println("包含有loadUrl语句");
+					    		 System.out.println("??????loadUrl???");
 					    		 flagWebViewNavigation = true;
 					    	 }
 					    }
@@ -757,7 +757,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 					    		System.out.println("Class:"+sc.getName());
 					    	     System.out.println("Method:"+sm.getName());
 					    	     System.out.println("Unit:"+unit.toString());
-					    	     System.out.println("该类采用了只加载信任域的代码的机制");
+					    	     System.out.println("????????????????????????????");
 					    	     System.out.println();
 					    		
 					    	}
@@ -776,7 +776,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 			countRemotePattern++;
 //			flagSecondRisk=true;
 			countWVhasNavigation++;
-			System.out.println("这个WebViewClient："+ClassName+"没有重载shouldOverrideUrlLoading()方法，因此存在第二种风险");
+			System.out.println("???WebViewClient??"+ClassName+"???????shouldOverrideUrlLoading()???????????????????");
 		}
 		else{
 			if (flagWebViewNavigation == true) {
@@ -784,12 +784,12 @@ public class AndroidAnalysis extends BasicAnalysis{
 				countRemotePattern++;
 //				flagSecondRisk=true;
 				countWVhasNavigation++;
-			    System.out.println("这个WebViewClient："+ClassName+"重载shouldOverrideUrlLoading()方法,同时具有导航能力，因此存在第二种风险");
+			    System.out.println("???WebViewClient??"+ClassName+"????shouldOverrideUrlLoading()????,?????????????????????????????");
 		     } 
 			else {
 				flagUseRemotePattern=true;
 				countRemotePattern++;
-			    System.out.println("这个WebViewClient："+ClassName+"重载shouldOverrideUrlLoading()方法，但不具有导航能力");
+			    System.out.println("???WebViewClient??"+ClassName+"????shouldOverrideUrlLoading()??????????????????????");
 		    }
 		}
 	}
@@ -815,7 +815,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 						   JSInterfaceValue=SearchStringInOneBody(body,GetRightOP(unit),0);
 					    }
 					  if(JSInterfaceValue!=null){
-						flagFindIt = true;//找到
+						flagFindIt = true;//???
 						String ClassDefine = JSInterfaceValue.toString();
 					    int index1 = ClassDefine.indexOf(" ", 0);
 					    int index2 = ClassDefine.lastIndexOf(" ");
@@ -829,13 +829,13 @@ public class AndroidAnalysis extends BasicAnalysis{
 				    		System.out.println("Js interface is an object 1");
 //				    		flagThirdMethodaddTag = false;
 				    		if(!JSInterfaceName.contains(JsInterfaceName)){
-				    			System.out.println("加入JsInterfaceName列表："+JsInterfaceName.toString());
+				    			System.out.println("????JsInterfaceName??????"+JsInterfaceName.toString());
 							    JSInterfaceName.add(JsInterfaceName.toString());
 				    		}
-							System.out.println("这个接口没有加@标记");
+							System.out.println("???????????@???");
 					    }
-						else{//在调用此方法的方法中查找
-							 System.out.println("JSInterface类名"+ClassName);
+						else{//????????????????????
+							 System.out.println("JSInterface????"+ClassName);
 							 FMcheckJSclassAnnotation(ClassName,JsInterfaceName);
 						}
 					}
@@ -846,22 +846,22 @@ public class AndroidAnalysis extends BasicAnalysis{
 		}
 		if(FindAssign==false){
 			for(Unit unit2:body.getUnits()){
-				if(unit2 instanceof IdentityStmt){//@作为参数的
+				if(unit2 instanceof IdentityStmt){//@?????????
 					if (GetLeftOP(unit2).equals(valueName)) {
-						String ValueName = GetRightOP(unit2).toString();// 根据赋值语句的右值，得到Js class 类名
+						String ValueName = GetRightOP(unit2).toString();// ??????????????????Js class ????
 						int index = ValueName.indexOf(" ");
 						String ClassName = ValueName.substring(index + 1);
-						if (ClassName.equals("java.lang.Object")) { //java.lang.Object类，需在上层调用方法中查找
+						if (ClassName.equals("java.lang.Object")) { //java.lang.Object??????????????????????
 							System.out.println("js interaface is an object 2");
 //							flagThirdMethodaddTag = false;
 							if(!JSInterfaceName.contains(JsInterfaceName)){
-							     System.out.println("加入JsInterfaceName列表："+JsInterfaceName.toString());
+							     System.out.println("????JsInterfaceName??????"+JsInterfaceName.toString());
 							     JSInterfaceName.add(JsInterfaceName.toString());
 							}
-							System.out.println("这个接口没有加@标记");
+							System.out.println("???????????@???");
 					    }
-						else{//在调用此方法的方法中查找
-							 System.out.println("JSInterface类名:"+ClassName);
+						else{//????????????????????
+							 System.out.println("JSInterface????:"+ClassName);
 							 FMcheckJSclassAnnotation(ClassName,JsInterfaceName);
 						}
 						break;
@@ -872,7 +872,7 @@ public class AndroidAnalysis extends BasicAnalysis{
 		return flagFindIt;
 	}
 
-	public void SearchValueInSourceMethod(SootMethod sm,int depth){//从一个方法查找调用它的其他方法的参数
+	public void SearchValueInSourceMethod(SootMethod sm,int depth){//?????????????????????????????????
 		String InvokeStmtContains=sm.getName();
 		CallGraph callGraph = Scene.v().getCallGraph();
 		Iterator<MethodOrMethodContext> sources = new Sources(callGraph.edgesInto(sm));
@@ -889,19 +889,19 @@ public class AndroidAnalysis extends BasicAnalysis{
 		}
 	}
 	
-	public boolean FMcheckJSclassAnnotation(String classname,Value JsInterfaceName) {// 根据找到的JS接口类名，进入到class中,判断该Class类里的方法是否添加了@接口
-		boolean addTag = false;// 记录JS接口类Class是否添加@标记的标志变量
-		System.out.println("查找@标记,"+"类名:"+classname);
+	public boolean FMcheckJSclassAnnotation(String classname,Value JsInterfaceName) {// ?????????JS?????????????class??,?????Class?????????????????@???
+		boolean addTag = false;// ???JS?????Class???????@??????????
+		System.out.println("????@???,"+"????:"+classname);
 		for (SootClass sc : classesChain) {
-			if (sc.getName().equals(classname)) {// 找到JSInterface类
-				System.out.println("在classChain中找到该类");
+			if (sc.getName().equals(classname)) {// ???JSInterface??
+				System.out.println("??classChain?????????");
 				for (SootMethod sm : sc.getMethods()) {
 					List<Tag> tags = sm.getTags();
 					for (Tag tag : tags) {
-						System.out.println("Tag类型："+tag.getClass().toString());
+						System.out.println("Tag?????"+tag.getClass().toString());
 						if (tag.getClass().getName().equals("soot.tagkit.VisibilityAnnotationTag")) {
-							// 判断是否添加@JavaScriptInterface标记，只要该类有一个方法添加了该方法，则能够避免第三类风险
-							System.out.println("方法"+sm.getName()+"添加了@标记");
+							// ???????????@JavaScriptInterface?????????????????????????????????????????????????
+							System.out.println("????"+sm.getName()+"??????@???");
 							addTag = true;
 							break;
 						}
@@ -910,18 +910,18 @@ public class AndroidAnalysis extends BasicAnalysis{
 						break;
 					}
 				}
-				break;// 找到该类则停止寻找
+				break;// ??????????????
 			}
 		}
 		if (addTag == false) {
 //			flagThirdMethodaddTag = false;
 			if(!JSInterfaceName.contains(JsInterfaceName)){
-			   System.out.println("加入JsInterfaceName列表："+JsInterfaceName.toString());
+			   System.out.println("????JsInterfaceName??????"+JsInterfaceName.toString());
 			   JSInterfaceName.add(JsInterfaceName.toString());
-			   System.out.println("这个接口没有加@标记");
+			   System.out.println("???????????@???");
 			}
 		} else {
-			System.out.println("这个接口加了@标记");
+			System.out.println("?????????@???");
 		}
 		return addTag;
 	}
@@ -992,13 +992,13 @@ public class AndroidAnalysis extends BasicAnalysis{
 				System.out.println(countInterfacePattern+" times.");
 				AnalyzeJSInterfaceVulner();//analyze two lists
 //				if (flagInterfaceVulner== true) {
-//					System.out.println("The app exsits the JS　interface vulnerability.");
+//					System.out.println("The app exsits the JS??interface vulnerability.");
 //					System.out.println("The app exposes "+countExposedJSInterface+" JS interfaces.");
 //		    		for(int i=0;i<JSInterfaceName.size();i++){
 //		    			System.out.println("Name:"+JSInterfaceName.get(i));
 //		        	}
 //				} else {
-//					System.out.println("NO JS　interface vulnerability.");
+//					System.out.println("NO JS??interface vulnerability.");
 //				}
 			}
 			if (flagUseCallbackPattern == true){

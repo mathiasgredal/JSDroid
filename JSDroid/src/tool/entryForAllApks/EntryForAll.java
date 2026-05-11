@@ -46,7 +46,7 @@ public class EntryForAll { //Entry
     public EntryForAll(String[] args){ //Initialization
     	
 		apkFileDirectory=args[0];
-		androidPlatformLocation=args[1];
+		androidPlatformLocation=normalizeAndroidPlatformPath(args[1]);
 		AllApkFilePathList=new ArrayList<String>();
 		ResultExcelLocation="Results.xls";
 		excel=new result2excel();
@@ -85,7 +85,7 @@ public class EntryForAll { //Entry
 		for(int i=0;i<selectedApkCount;i++){
 			curIndex=selectedApkIndexList.get(i);
 			apkFileLocation=AllApkFilePathList.get(curIndex).toString();
-			curAppName = apkFileLocation.substring(apkFileLocation.lastIndexOf("\\") + 1, apkFileLocation.lastIndexOf("."));
+			curAppName = deriveAppName(apkFileLocation);
 			System.out.println("App count: "+(i+1));
 			System.out.println("App path: "+apkFileLocation);
 			System.out.println("App name: "+curAppName);
@@ -100,16 +100,16 @@ public class EntryForAll { //Entry
 			excel.addOneLine2Excel(curAppName, analysis, processMan,i+1);
 			AnalyzeVulnerAndDisplayResults(analysis,processMan);
 			if(processMan.HttpsExported){
-				System.out.println("该app只接受https://浏览请求");
+				System.out.println("??app?????https://???????");
 			}
 			else {
-				System.out.println("该app并没有采取只接受https://浏览请求机制");
+				System.out.println("??app?????????????https://??????????");
 			}
 			if(analysis.trust){
-				System.out.println("该app采用了只加载信任域的代码机制");
+				System.out.println("??app????????????????????????");
 			}
 			else{
-				System.out.println("该app没有采用只加载信任域的代码机制");
+				System.out.println("??app?????????????????????????");
 
 			}
 			G.v();
@@ -154,7 +154,7 @@ public class EntryForAll { //Entry
 			int cols=sheet.getColumns();
 //			Object[] rowData=new Object[cols];
 			Object[] rowData=new Object[7];
-//			此处需要修改，应该是选取对应的四列数据，取表格中每行的第0,1,15,17,19这五列
+//			????????????????????????????????????????????0,1,15,17,19??????
 			rowData[0]=sheet.getCell(0,i).getContents();
 			rowData[1]=sheet.getCell(1,i).getContents();
 			rowData[2]=sheet.getCell(15,i).getContents();
@@ -180,20 +180,21 @@ public class EntryForAll { //Entry
 		 * args[2,3]: Path of Android platform 
 		 */
 //    	Options.v().set_validate(true);
-    	Options.v().set_soot_classpath(this.apkFileLocation+";"+
-				"/lib/jce.jar;" +
-				"/lib/tools.jar;" +
-				"lib/android.jar;"+
-				"/lib/android-support-v4.jar;"+
-				"/bin;"
-				);
+    	String sep=File.pathSeparator;
+    	String sootClasspath=this.apkFileLocation+sep+
+				new File("lib/jce.jar").getAbsolutePath()+sep+
+				new File("lib/tools.jar").getAbsolutePath()+sep+
+				new File("lib/android.jar").getAbsolutePath()+sep+
+				new File("lib/android-support-v4.jar").getAbsolutePath()+sep+
+				new File("bin").getAbsolutePath();
+    	Options.v().set_soot_classpath(sootClasspath);
 		Options.v().set_src_prec(Options.src_prec_apk);
 		Options.v().set_output_format(Options.output_format_jimple);
 		Options.v().set_output_dir("JimpleOutput");
 		Options.v().set_keep_line_number(true);
 		Options.v().set_prepend_classpath(true);
 	    Options.v().set_allow_phantom_refs(true);
-    	Options.v().set_android_jars(args[1]);
+	    applyAndroidJarOption(args[1]);
 	    Options.v().set_process_dir(Collections.singletonList(args[3]));
 	    Options.v().set_whole_program(true);
 		Options.v().set_force_overwrite(true); 
@@ -227,5 +228,47 @@ public class EntryForAll { //Entry
         Scene.v().addBasicClass("org.apache.http.params.HttpProtocolParamBean",SootClass.SIGNATURES);
         Scene.v().addBasicClass("org.apache.http.protocol.RequestExpectContinue",SootClass.SIGNATURES);
         Scene.v().loadClassAndSupport("Constants");	
+	}
+
+	private String deriveAppName(String apkPath){
+		String name=new File(apkPath).getName();
+		int dot=name.lastIndexOf(".");
+		if(dot>0){
+			return name.substring(0,dot);
+		}
+		return name;
+	}
+
+	private String normalizeAndroidPlatformPath(String inputPath){
+		File input=new File(inputPath);
+		if(input.isDirectory()){
+			File directJar=new File(input,"android.jar");
+			if(directJar.exists()){
+				return directJar.getAbsolutePath();
+			}
+			File sdkPlatforms=new File(input,"platforms");
+			if(sdkPlatforms.exists()&&sdkPlatforms.isDirectory()){
+				return sdkPlatforms.getAbsolutePath();
+			}
+			File bundledPlatform=new File(input,"android--1/android.jar");
+			if(bundledPlatform.exists()){
+				return bundledPlatform.getAbsolutePath();
+			}
+		}
+		return inputPath;
+	}
+
+	private void applyAndroidJarOption(String androidPath){
+		File androidFile=new File(androidPath);
+		if(androidFile.isFile()&&androidFile.getName().equals("android.jar")){
+			Options.v().set_force_android_jar(androidFile.getAbsolutePath());
+			return;
+		}
+		File directJar=new File(androidFile,"android.jar");
+		if(directJar.exists()){
+			Options.v().set_force_android_jar(directJar.getAbsolutePath());
+			return;
+		}
+		Options.v().set_android_jars(androidPath);
 	}
 }
