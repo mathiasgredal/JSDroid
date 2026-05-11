@@ -1,8 +1,12 @@
 package tool.entryForAllApks;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -18,6 +22,7 @@ import org.jvnet.substance.skin.BusinessBlueSteelSkin;
 import org.jvnet.substance.skin.OfficeSilver2007Skin;
 import org.jvnet.substance.title.FlatTitlePainter;
 import org.jvnet.substance.watermark.SubstanceStripeWatermark;
+import org.jf.dexlib2.dexbacked.raw.HeaderItem;
 
 import soot.G;
 import soot.Scene;
@@ -33,7 +38,6 @@ import android.R.integer;
 import com.test.xmldata.ProcessManifest;
 
 public class EntryForAll { //Entry
-	
 	private String apkFileDirectory; //APK fileS directory
 	private String androidPlatformLocation; //Android platform path
 	private String apkFileLocation; //APK file path
@@ -42,6 +46,7 @@ public class EntryForAll { //Entry
 	private String ResultExcelLocation; //Excel path
 	public long runningTime;
 	public int selectedApkCount;
+	public int failedApkCount;
 	
     public EntryForAll(String[] args){ //Initialization
     	
@@ -79,6 +84,7 @@ public class EntryForAll { //Entry
          * Param: Index list of selected APKs  
          */
 		selectedApkCount=selectedApkIndexList.size(); //Number of selected APKs
+		failedApkCount=0;
 		int curIndex; //Current APK index
 		String curAppName; //Current APK name
 		long start=System.currentTimeMillis(); // Time when it starts 
@@ -89,36 +95,48 @@ public class EntryForAll { //Entry
 			System.out.println("App count: "+(i+1));
 			System.out.println("App path: "+apkFileLocation);
 			System.out.println("App name: "+curAppName);
-			String param[] = {"-android-jars",androidPlatformLocation,"-process-dir", apkFileLocation};
-			initSoot(param);
-			AndroidAnalysis analysis=new AndroidAnalysis(curAppName);
-			analysis.Analyze();
-			ProcessManifest processMan = new ProcessManifest();
-			processMan.loadManifestFile(apkFileLocation);
-			System.out.println("FileExported:"+processMan.FileExported);
-			System.out.println("HttpExported:"+processMan.HttpExported);
-			excel.addOneLine2Excel(curAppName, analysis, processMan,i+1);
-			AnalyzeVulnerAndDisplayResults(analysis,processMan);
-			if(processMan.HttpsExported){
-				System.out.println("??app?????https://???????");
-			}
-			else {
-				System.out.println("??app?????????????https://??????????");
-			}
-			if(analysis.trust){
-				System.out.println("??app????????????????????????");
-			}
-			else{
-				System.out.println("??app?????????????????????????");
+			try {
+				validateDexFiles(apkFileLocation);
+				String param[] = {"-android-jars",androidPlatformLocation,"-process-dir", apkFileLocation};
+				initSoot(param);
+				AndroidAnalysis analysis=new AndroidAnalysis(curAppName);
+				analysis.Analyze();
+				ProcessManifest processMan = new ProcessManifest();
+				processMan.loadManifestFile(apkFileLocation);
+				System.out.println("FileExported:"+processMan.FileExported);
+				System.out.println("HttpExported:"+processMan.HttpExported);
+				excel.addOneLine2Excel(curAppName, analysis, processMan,i+1);
+				AnalyzeVulnerAndDisplayResults(analysis,processMan);
+				if(processMan.HttpsExported){
+					System.out.println("??app?????https://???????");
+				}
+				else {
+					System.out.println("??app?????????????https://??????????");
+				}
+				if(analysis.trust){
+					System.out.println("??app????????????????????????");
+				}
+				else{
+					System.out.println("??app?????????????????????????");
 
+				}
+			} catch (Exception e) {
+				failedApkCount++;
+				String failureMessage=describeProcessingFailure(e);
+				System.out.println("Skipping app '"+curAppName+"': "+failureMessage);
+				excel.addErrorLine2Excel(curAppName, failureMessage, i+1);
+			} finally {
+				G.v();
+				G.reset();
 			}
-			G.v();
-			G.reset();
 		}
 		excel.WriteAll(); //Write all line into excel
 		long end=System.currentTimeMillis(); //Time when it ends
 	    runningTime=(end-start)/1000; // Running Time(:s)
 		System.out.println("It takes "+runningTime+" seconds to analyze all these "+selectedApkCount+" apps");
+		if(failedApkCount>0){
+			System.out.println("Skipped "+failedApkCount+" app(s) because they could not be processed.");
+		}
 	}
 	
 	public void AnalyzeVulnerAndDisplayResults(AndroidAnalysis analysis, ProcessManifest processMan){
@@ -270,5 +288,95 @@ public class EntryForAll { //Entry
 			return;
 		}
 		Options.v().set_android_jars(androidPath);
+	}
+
+	private void validateDexFiles(String apkPath) throws ApkProcessingException{
+		ZipInputStream zipInput=null;
+		boolean foundDexFile=false;
+		try{
+			zipInput=new ZipInputStream(new FileInputStream(apkPath));
+			ZipEntry entry;
+			while((entry=zipInput.getNextEntry())!=null){
+				if(isDexEntry(entry.getName())){
+					foundDexFile=true;
+					validateDexHeader(entry.getName(), zipInput);
+				}
+			}
+		} catch (IOException e) {
+			throw new ApkProcessingException("Could not read APK: "+safeMessage(e), e);
+		} finally {
+			if(zipInput!=null){
+				try {
+					zipInput.close();
+				} catch (IOException e) {
+					System.out.println("Warning: could not close APK file: "+safeMessage(e));
+				}
+			}
+		}
+		if(!foundDexFile){
+			throw new ApkProcessingException("APK does not contain any classes*.dex files.");
+		}
+	}
+
+	private boolean isDexEntry(String entryName){
+		return entryName.equals("classes.dex") || (entryName.startsWith("classes") && entryName.endsWith(".dex"));
+	}
+
+	private void validateDexHeader(String entryName, ZipInputStream zipInput) throws IOException, ApkProcessingException{
+		byte[] magic=new byte[8];
+		int bytesRead=readFully(zipInput, magic);
+		if(bytesRead<magic.length){
+			throw new ApkProcessingException(entryName+" has an incomplete dex header.");
+		}
+		if(!hasDexMagicPrefix(magic)){
+			throw new ApkProcessingException(entryName+" is not a valid dex file.");
+		}
+		if(!HeaderItem.verifyMagic(magic, 0)){
+			String version=""+(char)magic[4]+(char)magic[5]+(char)magic[6];
+			throw new ApkProcessingException(entryName+" uses dex version "+version+", which is not supported by this JSDroid build's bundled Soot/dexlib.");
+		}
+	}
+
+	private boolean hasDexMagicPrefix(byte[] magic){
+		return magic[0]=='d'&&magic[1]=='e'&&magic[2]=='x'&&magic[3]=='\n'&&magic[7]==0;
+	}
+
+	private int readFully(ZipInputStream zipInput, byte[] buffer) throws IOException{
+		int total=0;
+		while(total<buffer.length){
+			int count=zipInput.read(buffer, total, buffer.length-total);
+			if(count<0){
+				break;
+			}
+			total+=count;
+		}
+		return total;
+	}
+
+	private String describeProcessingFailure(Exception e){
+		if(e instanceof ApkProcessingException){
+			return safeMessage(e);
+		}
+		String message=safeMessage(e);
+		return e.getClass().getName()+": "+message;
+	}
+
+	private String safeMessage(Exception e){
+		if(e.getMessage()==null||e.getMessage().length()==0){
+			return e.getClass().getName();
+		}
+		return e.getMessage();
+	}
+
+	private static class ApkProcessingException extends Exception{
+		private static final long serialVersionUID = 1L;
+
+		public ApkProcessingException(String message){
+			super(message);
+		}
+
+		public ApkProcessingException(String message, Throwable cause){
+			super(message, cause);
+		}
 	}
 }

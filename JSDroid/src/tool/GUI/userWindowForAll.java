@@ -235,7 +235,12 @@ public class userWindowForAll extends JFrame implements ActionListener {
 			}
 			if(chooseFlag==true){
 				entryForAll.AnalyzeAll(selectedAPKIndexList); //Analyze all
-			    labelStaticAnaFinished.setText("It takes "+entryForAll.runningTime+" Seconds to complete detections of JavaScript-related vulnerabilities in "+entryForAll.selectedApkCount+" Android apps¡£");
+				if(entryForAll.failedApkCount>0){
+					labelStaticAnaFinished.setText("It takes "+entryForAll.runningTime+" Seconds to process "+entryForAll.selectedApkCount+" Android apps; "+entryForAll.failedApkCount+" app(s) were skipped.");
+				}
+				else{
+					labelStaticAnaFinished.setText("It takes "+entryForAll.runningTime+" Seconds to complete detections of JavaScript-related vulnerabilities in "+entryForAll.selectedApkCount+" Android apps¡£");
+				}
 			}
 			else{
 				JOptionPane.showMessageDialog(null, "Please choose APK files.", "Promption", JOptionPane.ERROR_MESSAGE); 

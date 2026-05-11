@@ -254,6 +254,39 @@ public class result2excel {
         	 System.out.println(e);
          } 
 	 } 
+	public void addErrorLine2Excel(String appName,String errorMessage,int i){
+		System.out.println("-----------------add skipped record into the excel--------------------------------");
+		try{
+			sheet.addCell(new Label(0,i,appName));
+			sheet.addCell(new Label(1,i,"Skipped"));
+			sheet.addCell(new Label(2,i,"N/A"));
+			sheet.addCell(new Label(3,i,"0"));
+			sheet.addCell(new Label(4,i,"N/A"));
+			sheet.addCell(new Label(5,i,"N/A"));
+			sheet.addCell(new Label(6,i,"0"));
+			sheet.addCell(new Label(7,i,"N/A"));
+			sheet.addCell(new Label(8,i,"N/A"));
+			sheet.addCell(new Label(9,i,"0"));
+			sheet.addCell(new Label(10,i,"N/A"));
+			sheet.addCell(new Label(11,i,"N/A"));
+			sheet.addCell(new Label(12,i,"0"));
+			sheet.addCell(new Label(13,i,"N/A"));
+			sheet.addCell(new Label(14,i,"N/A"));
+			sheet.addCell(new Label(15,i,"Skipped"));
+			sheet.addCell(new Label(16,i,"0"));
+			sheet.addCell(new Label(17,i,"Skipped"));
+			sheet.addCell(new Label(18,i,"0"));
+			sheet.addCell(new Label(19,i,"Skipped"));
+			sheet.addCell(new Label(20,i,"0"));
+			sheet.addCell(new Label(21,i,errorMessage));
+			sheet.addCell(new Label(22,i,"N/A"));
+			sheet.addCell(new Label(23,i,"N/A"));
+		}
+		catch(Exception e){
+			System.out.println(e);
+		}
+	}
+
 	public void WriteAll(){
 		try {
     		book.write();
